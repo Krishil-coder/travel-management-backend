@@ -1,0 +1,72 @@
+spring:
+  application:
+    name: tms-backend
+
+  # ===========================================
+  # MySQL Database Connection
+  # ===========================================
+  datasource:
+    url: jdbc:mysql://localhost:3306/tms_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: ctms_user
+    password: ctms_pass
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # ===========================================
+  # JPA / Hibernate Configuration
+  # ===========================================
+  jpa:
+    hibernate:
+      ddl-auto: update          # Flyway owns the schema; JPA only verifies entities match
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true           # Pretty-prints SQL in logs
+    show-sql: true                 # Logs the actual SQL queries — great for learning
+    open-in-view: false            # Prevents lazy-loading from leaking into the HTTP layer
+
+  # ===========================================
+  # Flyway Migration Settings
+  # ===========================================
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+# ===========================================
+# Embedded Tomcat / Server Settings
+# ===========================================
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-stacktrace: never      # Never leak internals to clients
+
+# ===========================================
+# Custom Application Settings (JWT)
+# ===========================================
+app:
+  jwt:
+    secret: ${JWT_SECRET:change-this-in-prod-use-env-var-min-256-bits-long-secret-key-here}
+    expiration-ms: 86400000        # 24 hours (24 * 60 * 60 * 1000)
+
+# ===========================================
+# Logging
+# ===========================================
+logging:
+  level:
+    com.company.tms: DEBUG
+    org.springframework.security: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE   # Shows parameter values in queries
+  pattern:
+    console: "%d{HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n"
+
+# ===========================================
+# Swagger / OpenAPI UI
+# ===========================================
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
