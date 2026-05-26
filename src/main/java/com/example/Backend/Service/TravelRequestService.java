@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -51,6 +52,15 @@ public class TravelRequestService {
 
         return TravelRequestResponse.from(savedTravelRequest);
     }
+    @Transactional
+    public TravelRequestResponse getTravelRequestById(Long id) {
+
+        TravelRequest request = travelRequestRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Travel Request Not Found " + id));
+        return TravelRequestResponse.from(request);
+
+    }
+
 
     @Transactional
     public TravelRequestResponse updateDraftTravelRequest(Long id, UpdateTravelRequestDto dto) {
@@ -76,6 +86,18 @@ public class TravelRequestService {
     }
 
     @Transactional
+    public TravelRequestResponse deleteDraftTravelRequest(Long id) {
+
+        TravelRequest travelRequest = findTravelRequest(id);
+        if(travelRequest.getStatus() != RequestStatus.DRAFT) {
+            throw new ResourceConflictException("Only draft travel requests can be deleted");
+        }
+        TravelRequestResponse response = TravelRequestResponse.from(travelRequest);
+        travelRequestRepository.delete(travelRequest);
+        return response;
+    }
+
+    @Transactional
     public TravelRequestResponse submitTravelRequest(Long id) {
         TravelRequest travelRequest = findTravelRequest(id);
         validateEmployeeOrManager(travelRequest.getEmployee());
@@ -90,6 +112,23 @@ public class TravelRequestService {
                 savedTravelRequest.getId(), savedTravelRequest.getEmployee().getId());
 
         return TravelRequestResponse.from(savedTravelRequest);
+    }
+    @Transactional
+    public List<TravelRequestResponse> getAllTravelRequests() {
+
+        return travelRequestRepository.findAll()
+                .stream()
+                .map(TravelRequestResponse::from)
+                .toList();
+    }
+        @Transactional
+    public List<TravelRequestResponse> getEmployeeRequests(Long employeeId){
+
+        return travelRequestRepository
+                .findByEmployeeId(employeeId)
+                .stream()
+                .map(TravelRequestResponse::from)
+                .toList();
     }
 
     private TravelRequest findTravelRequest(Long id) {
@@ -114,4 +153,5 @@ public class TravelRequestService {
             throw new ResourceConflictException("End date cannot be before start date");
         }
     }
+
 }

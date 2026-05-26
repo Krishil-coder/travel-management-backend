@@ -9,13 +9,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/requests")
@@ -39,6 +35,16 @@ public class TravelRequestController {
                 .body(ApiResponse.success(response, "Travel Request Created Successfully"));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<TravelRequestResponse>> getTravelRequestById(
+            @PathVariable long id
+    ){
+        TravelRequestResponse response = travelRequestService.getTravelRequestById(id);
+
+        return ResponseEntity
+                .ok(ApiResponse.success(response, "Travel Request Found Successfully"));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<TravelRequestResponse>> updateDraftTravelRequest(
             @PathVariable Long id,
@@ -59,4 +65,34 @@ public class TravelRequestController {
         return ResponseEntity
                 .ok(ApiResponse.success(response, "Travel Request Submitted Successfully"));
     }
+   @GetMapping
+public ResponseEntity<ApiResponse<List<TravelRequestResponse>>> getAllTravelRequests(
+        @RequestParam(required = false) Long employeeId
+) {
+
+    List<TravelRequestResponse> response;
+
+    if (employeeId != null) {
+        response = travelRequestService.getEmployeeRequests(employeeId);
+    } else {
+        response = travelRequestService.getAllTravelRequests();
+    }
+
+    return ResponseEntity.ok(
+            ApiResponse.success(
+                    response,
+                    "Travel Requests Fetched Successfully"
+            )
+    );
+}
+@DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<TravelRequestResponse>> deleteTravelRequest(
+            @PathVariable Long id){
+
+        TravelRequestResponse response =travelRequestService.deleteDraftTravelRequest(id);
+
+        return  ResponseEntity.ok(ApiResponse.success(response, "Travel Request Deleted Successfully"));
+
+}
+
 }
