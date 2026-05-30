@@ -11,6 +11,7 @@ import com.example.Backend.Repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.List;
 @Slf4j
 public class UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public UserResponse createUser(CreateUserDto dto) {
@@ -56,7 +58,7 @@ public class UserService {
     }
 
     private String hashPassword(String plainPassword) {
-        return "hashed_" +plainPassword;
+        return passwordEncoder.encode(plainPassword);
     }
 
     public List<UserResponse> getAllUsers() {

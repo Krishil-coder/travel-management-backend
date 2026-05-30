@@ -4,7 +4,7 @@ package com.example.Backend.Domain;
 import jakarta.persistence.*;
 import lombok.*;
 
-import javax.swing.text.Segment;
+
 import java.time.LocalDateTime;
 
 @Entity
