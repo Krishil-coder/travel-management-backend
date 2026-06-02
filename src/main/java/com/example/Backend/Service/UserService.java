@@ -3,6 +3,7 @@ package com.example.Backend.Service;
 
 import com.example.Backend.DTO.Request.CreateUserDto;
 import com.example.Backend.DTO.Request.UpdateUserDto;
+import com.example.Backend.Domain.Role;
 import com.example.Backend.DTO.Response.UserResponse;
 import com.example.Backend.Domain.User;
 import com.example.Backend.Exception.ResourceConflictException;
@@ -71,6 +72,17 @@ public class UserService {
     }
     public List<UserResponse> getUsersById(Long id) {
         return userRepository.findById(id).stream()
+                .map(UserResponse::from)
+                .toList();
+    }
+
+    public List<String> getDepartments() {
+        return userRepository.findDistinctDepartments();
+    }
+
+    public List<UserResponse> getManagersByDepartment(String department) {
+        return userRepository.findByRoleAndDepartment(Role.MANAGER, department)
+                .stream()
                 .map(UserResponse::from)
                 .toList();
     }

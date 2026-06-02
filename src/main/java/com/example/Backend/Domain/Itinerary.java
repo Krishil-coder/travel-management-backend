@@ -45,6 +45,8 @@ public class Itinerary {
     @Column(length = 500)
     private String details;
 
+
+
     public enum SegmentType{
       FLIGHT,TRAIN,BUS,HOTEL,CAR_RENTAL,OTHER
     }

@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
 public class Expense {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY,optional = false)
     @JoinColumn(name="travel_request_id",nullable = false)
@@ -53,7 +53,7 @@ public class Expense {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false,length = 30)
     @Builder.Default
-    private ExpenseStatus Status = ExpenseStatus.PENDING;
+    private ExpenseStatus status = ExpenseStatus.PENDING;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="approved_by_id")

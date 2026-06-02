@@ -3,12 +3,15 @@ package com.example.Backend.Service;
 import com.example.Backend.DTO.Request.CreateTravelRequestDto;
 import com.example.Backend.DTO.Request.UpdateTravelRequestDto;
 import com.example.Backend.DTO.Response.TravelRequestResponse;
+import com.example.Backend.DTO.Response.UserResponse;
+import com.example.Backend.Domain.Policy;
 import com.example.Backend.Domain.RequestStatus;
 import com.example.Backend.Domain.Role;
 import com.example.Backend.Domain.TravelRequest;
 import com.example.Backend.Domain.User;
 import com.example.Backend.Exception.ResourceConflictException;
 import com.example.Backend.Exception.ResourceNotFoundException;
+import com.example.Backend.Repository.PolicyRepository;
 import com.example.Backend.Repository.TravelRequestRepository;
 import com.example.Backend.Repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -16,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -25,6 +29,7 @@ import java.util.List;
 public class TravelRequestService {
     private final TravelRequestRepository travelRequestRepository;
     private final UserRepository userRepository;
+    private final PolicyRepository policyRepository;
 
     @Transactional
     public TravelRequestResponse createTravelRequest(CreateTravelRequestDto dto) {
@@ -33,6 +38,7 @@ public class TravelRequestService {
         User employee = userRepository.findById(dto.getEmployeeId())
                 .orElseThrow(() -> new ResourceNotFoundException("Employee Not Found " + dto.getEmployeeId()));
         validateEmployeeOrManager(employee);
+        checkPolicy(employee, dto.getEstimatedCost(), dto.getTravelClass());
 
         TravelRequest travelRequest = TravelRequest.builder()
                 .employee(employee)
@@ -69,6 +75,7 @@ public class TravelRequestService {
         TravelRequest travelRequest = findTravelRequest(id);
         validateEmployeeOrManager(travelRequest.getEmployee());
         validateDraftStatus(travelRequest);
+        checkPolicy(travelRequest.getEmployee(), dto.getEstimatedCost(), dto.getTravelClass());
 
         travelRequest.setDestination(dto.getDestination());
         travelRequest.setTravelClass(dto.getTravelClass());
@@ -131,6 +138,14 @@ public class TravelRequestService {
                 .toList();
     }
 
+    @Transactional
+    public List<UserResponse> getManagersByDepartment(Role role, String department) {
+        return userRepository.findByRoleAndDepartment(role, department)
+                .stream()
+                .map(UserResponse::from)
+                .toList();
+    }
+
     private TravelRequest findTravelRequest(Long id) {
         return travelRequestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Travel Request Not Found " + id));
@@ -151,6 +166,24 @@ public class TravelRequestService {
     private void validateDateRange(java.time.LocalDate startDate, java.time.LocalDate endDate) {
         if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
             throw new ResourceConflictException("End date cannot be before start date");
+        }
+    }
+
+    private void checkPolicy(User employee, BigDecimal estimatedCost, String travelClass) {
+        Policy policy = policyRepository.findFirstByAppliesToRoleAndActiveTrue(employee.getRole())
+                .orElse(null);
+
+        if (policy == null) {
+            return;
+        }
+
+        boolean budgetViolation = estimatedCost.compareTo(policy.getMaxBudget()) > 0;
+        boolean classViolation = travelClass != null
+                && policy.getMaxTravelClass() != null
+                && !travelClass.equalsIgnoreCase(policy.getMaxTravelClass());
+
+        if ((budgetViolation || classViolation) && Boolean.TRUE.equals(policy.getHardBlockOnViolation())) {
+            throw new ResourceConflictException("Travel request violates policy");
         }
     }
 

@@ -4,6 +4,8 @@ import com.example.Backend.DTO.Request.CreateTravelRequestDto;
 import com.example.Backend.DTO.Request.UpdateTravelRequestDto;
 import com.example.Backend.DTO.Response.ApiResponse;
 import com.example.Backend.DTO.Response.TravelRequestResponse;
+import com.example.Backend.DTO.Response.UserResponse;
+import com.example.Backend.Domain.Role;
 import com.example.Backend.Service.TravelRequestService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -85,6 +87,19 @@ public ResponseEntity<ApiResponse<List<TravelRequestResponse>>> getAllTravelRequ
             )
     );
 }
+
+@GetMapping("/managers")
+public ResponseEntity<ApiResponse<List<UserResponse>>> getManagersByDepartment(
+        @RequestParam Role role,
+        @RequestParam String department
+) {
+    List<UserResponse> response = travelRequestService.getManagersByDepartment(role, department);
+
+    return ResponseEntity.ok(
+            ApiResponse.success(response, "Managers Fetched Successfully")
+    );
+}
+
 @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<TravelRequestResponse>> deleteTravelRequest(
             @PathVariable Long id){

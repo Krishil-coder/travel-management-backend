@@ -35,7 +35,28 @@ public class UserController {
         public ResponseEntity<List<UserResponse>> getAllUsers(){
         return ResponseEntity.ok(userService.getAllUsers());
     }
-    @GetMapping("/{id}")
+
+    @GetMapping("/departments")
+    public ResponseEntity<ApiResponse<List<String>>> getDepartments() {
+        List<String> response = userService.getDepartments();
+
+        return ResponseEntity.ok(
+                ApiResponse.success(response, "Departments Fetched Successfully")
+        );
+    }
+
+    @GetMapping("/managers")
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getManagersByDepartment(
+            @RequestParam String department
+    ) {
+        List<UserResponse> response = userService.getManagersByDepartment(department);
+
+        return ResponseEntity.ok(
+                ApiResponse.success(response, "Managers Fetched Successfully")
+        );
+    }
+
+    @GetMapping("/{id:\\d+}")
     public List<UserResponse> getUserById(
             @PathVariable Long id){
 
